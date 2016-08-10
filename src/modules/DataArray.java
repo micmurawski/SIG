@@ -47,7 +47,17 @@ public class DataArray {
 		
 	}
 	
-	public DataArray(double Norm,double tmin,double tmax,double n,double k, double ns, double ks,double G, double lambda,int N){
+	public DataArray(double[] v){
+		double Norm=v[0];
+		double tmin=v[1];
+		double tmax=v[2];
+		double n=v[3];
+		double k=v[4];
+		double ns=v[5];
+		double ks=v[6];
+		double G=v[7];
+		double lambda=v[8];
+		int N=10000;
 		data= new XYSeries("fit",false);
 		double a,b,t,fi;
 		double r_inf=((1-n)*(1-n) + k*k)/((1+n)*(1+n) + k*k);
@@ -69,7 +79,39 @@ public class DataArray {
 			t=(ii*dt);
 			a = r_inf+2*Math.sqrt(r_inf*r_i)*Math.exp(-gam*t)*Math.cos(delta*t-sig+fi)+r_i*Math.exp(-2*gam*t);
 			b = 1+2*Math.sqrt(r_inf*r_i)*Math.exp(-gam*t)*Math.cos(delta*t-sig-fi)+r_inf*r_i*Math.exp(-2*gam*t);
-			data.add(tmin+t,Norm*a/b);
+			data.add(tmin+t,(100000*a/b)+Norm);
+			
+		}
+		
+	}
+	
+	
+	public DataArray(boolean B,double Norm,double tmin,double tmax,double r_inf, double r_i, double sig, double fi,double gam,double delta,int N){
+		data= new XYSeries("fit",false);
+		double a,b,t;
+		//double r_inf=((1-n)*(1-n) + k*k)/((1+n)*(1+n) + k*k);
+		//double r_i=((ns-n)*(ns-n)+(ks-k)*(k-k))/((n+ns)*(n+ns)+(k+ks)*(k+ks));
+		//double sig=Math.atan(2*(n*ks-ns*k)/(n*n-ns*ns+k*k-ks*ks));
+		//if(n>ns){
+		//	fi=Math.atan(2*k/(1-n*n-k*k))+Math.PI;
+		//}else{
+		//	fi=Math.atan(2*k/(1-n*n-k*k));
+		//}
+		
+		//double gam=4*Math.PI*k*G/lambda;
+		//double delta=4*Math.PI*n*G/lambda;
+		double dt=(tmax-tmin)/(double)N;
+		
+		//double r0=(r_inf+2*Math.sqrt(r_inf*r_i)*Math.cos(sig+fi)+r_inf)/(1+2*Math.sqrt(r_inf*r_i)*Math.cos(-sig-fi)+r_inf*r_i);
+		//double a1=(-(8*Math.PI*k/lambda)*Math.cos(fi-sig)-(8*Math.PI*n/lambda)*Math.sqrt(r_inf*r_i)-(-8*Math.PI*k/lambda)*r_inf)/(1+2*Math.sqrt(r_inf*r_i)*Math.cos(+sig+fi)+r_inf*r_i);
+		//double a2=((2*Math.sqrt(r_i*r_inf)*Math.cos(fi-sig)+r_i+r_inf)*(-(8*Math.PI*k/lambda)*Math.sqrt(r_i*r_inf)*Math.cos(fi+sig)-(8*Math.PI*k/lambda)*Math.sqrt(r_i*r_inf)+(8*Math.PI*n/lambda)*Math.sqrt(r_i*r_inf)*Math.sin(fi+sig)))/
+		//		((1+2*Math.sqrt(r_inf*r_i)*Math.cos(sig+fi)+r_inf*r_i)*(1+2*Math.sqrt(r_inf*r_i)*Math.cos(sig+fi)+r_inf*r_i));
+	
+		for(int ii=0;ii<N+1;ii++){
+			t=(ii*dt);
+			a = r_inf+2*Math.sqrt(r_inf*r_i)*Math.exp(-gam*t)*Math.cos(delta*t-sig+fi)+r_i*Math.exp(-2*gam*t);
+			b = 1+2*Math.sqrt(r_inf*r_i)*Math.exp(-gam*t)*Math.cos(delta*t-sig-fi)+r_inf*r_i*Math.exp(-2*gam*t);
+			data.add(tmin+t,Norm*(1));
 			
 		}
 		

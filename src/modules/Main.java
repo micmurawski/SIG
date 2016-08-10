@@ -13,6 +13,7 @@ import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 
 import java.io.File;
+import java.util.Arrays;
 
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
@@ -36,9 +37,10 @@ public class Main extends JFrame{
 
 	public ChartPanel chartContainer;
 	public ExtremaFinderWindow extremaFinderWindow;
-	//NumericalAnalysis numericalAnalysis=new NumericalAnalysis();
 	JFreeChart chart;
-	public DataArray data,fit;
+	public DataSeries data;
+
+	DataSeries fit;
 	TTLArray ttl;
 	TTLPanel ttlPanel;
 	XYSeriesCollection collection;
@@ -49,13 +51,19 @@ public class Main extends JFrame{
 	ValueMarker marker;
 	AskWindow askWin;
 	XYSeries min,max;
-	Object syncroot=new Object();
 	NumericalAnalysis numericalAnalysis;
 	PlotFrame plotFrame;
+	LoadingWindow loadingWindow;
+	public OptionPanel options;
 	private JLabel lblCord;
+	public MyFuncFitter myFuncFitter;
+	
+	
+	
 	
 	
 	public Main(){
+		
 		numericalAnalysis=new NumericalAnalysis();
 		chooser = new JFileChooser();
 		menuBar = new JMenuBar();
@@ -72,14 +80,12 @@ public class Main extends JFrame{
 	    menuBar.add(analysisMenu);
 	    analysisMenu.add(extrema);
 	    setJMenuBar(menuBar);
-	    fit = new DataArray("fit");
-	    data= new DataArray("data");
+	    fit = new DataSeries("fit",false);
+	    data= new DataSeries("data",false);
 	    min= new XYSeries("min",false);
 	    max= new XYSeries("max",false);
 	    collection = new XYSeriesCollection();
 	    this.setVisible(true);
-	   
-	    
 	    
 	    getContentPane().setLayout(new MigLayout("", "[240.00][grow]", "[240.00,grow][41.00,grow][43.00][][][]"));
 	    setVisible(true);
@@ -89,8 +95,8 @@ public class Main extends JFrame{
 	    getContentPane().add(ttlPanel, "cell 1 1 1 15,grow");
 	    
 	//inicjalizacja wykresu
-	collection.addSeries(data.data);
-	collection.addSeries(fit.data);
+	collection.addSeries(data);
+	collection.addSeries(fit);
 	collection.addSeries(min);
 	collection.addSeries(max);
 	final JFreeChart chart = ChartFactory.createXYLineChart(" ","Time[s]","Reflectance", collection,PlotOrientation.VERTICAL,true,true,false);
@@ -121,7 +127,7 @@ chart.addProgressListener(new ChartProgressListener() {
     
     public void chartProgress(ChartProgressEvent cpe) {
     if(cpe.getType()==ChartProgressEvent.DRAWING_FINISHED){
-     System.out.println("Click event!");
+     //System.out.println("Click event!");
     XYPlot xyPlot2 = chartContainer.getChart().getXYPlot();
     lblCord.setText("X="+xyPlot2.getDomainCrosshairValue() + " "
         +"Y="+xyPlot2.getRangeCrosshairValue());
@@ -131,46 +137,51 @@ chart.addProgressListener(new ChartProgressListener() {
 lblCord = new JLabel("X=... Y=...");
 getContentPane().add(lblCord, "cell 0 1,alignx right");
 	
+
+
+
+
+
 		
-		final OptionPanel options = new OptionPanel();
+		options = new OptionPanel();
 		options.addOptionChangeListener(new OptionChange() {
-			
-			
+		
 			@Override
 			public void change() {
+				reDraw();
+			}
+		});
+		
+		options.btnFit.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				System.out.println("fit from "+options.parameters[1]+" to "+options.parameters[2]);
+				myFuncFitter=new MyFuncFitter();
 				
-				 synchronized(syncroot){
-					//PRERYSOWANIE
-					 collection.removeSeries(max);
-					 collection.removeSeries(min);
-					 collection.removeSeries(fit.data);
-					 //collection.addSeries(data.data);
-					 
-						fit = new DataArray(
-								options.parameters[5],//Norma
-								options.parameters[4],//tmin
-								Double.parseDouble(options.spinnerTmax.getValue().toString()),//tmax
-								options.parameters[0],//n
-								options.parameters[1],//k
-								options.parameters[2],//ns
-								options.parameters[3],//ks
-								options.parameters[6],//G
-								Double.parseDouble(options.spinnerLambda.getValue().toString()),//Lam
-								10000);
-						//System.out.println(options.parameters[5]);
-						//chart.getXYPlot().getDomainAxis().setRange(Double.parseDouble(options.spinnerXMIN.getValue().toString()),
-						//		Double.parseDouble(options.spinnerXMAX.getValue().toString()));
-						//chart.getXYPlot().getRangeAxis().setRange(data.data.getMinY(),data.data.getMaxY());
-						
-						//collection.addSeries(data.data);
-						collection.addSeries(fit.data);
-						collection.addSeries(min);
-						collection.addSeries(max);
-						
-						
-						
-						
-				 }
+				//System.out.println(Arrays.toString(options.getVariables()));
+				loadingWindow = new LoadingWindow("Calculating...");
+				Runnable runnable = new Runnable() {
+
+					@Override
+					public void run() {
+						double[] coeffs=myFuncFitter.fit(data,
+								options.parameters[1],
+								options.parameters[2],
+								options.getVariables());
+						options.setVariables(coeffs);
+						SwingUtilities.invokeLater(new Runnable() {
+			                public void run() {
+			                    loadingWindow.setVisible(false);
+			                }
+			            });
+					}
+					
+					
+				};
+				
+				new Thread(runnable).start();
+				
 				
 			}
 		});
@@ -181,6 +192,7 @@ getContentPane().add(lblCord, "cell 0 1,alignx right");
 		chartContainer.setMinimumDrawHeight(250);
 		chartContainer.setMaximumDrawHeight(1200);
 		chartContainer.setMaximumDrawWidth(1600);
+		
 		
 		
 		
@@ -199,28 +211,30 @@ getContentPane().add(lblCord, "cell 0 1,alignx right");
 						@Override
 						public void actionPerformed(ActionEvent e) {
 							int L=Integer.parseInt(askWin.spinner.getValue().toString());
+							double N=Double.parseDouble(askWin.spinner_1.getValue().toString());
 			            	File selectedFile=chooser.getSelectedFile();
 							 
 			            	 collection.removeSeries(max);
 			            	 collection.removeSeries(min);
-			            	 collection.removeSeries(fit.data);
-							 collection.removeSeries(data.data);
-							 data = new DataArray(selectedFile.getPath(),L);
-							 collection.addSeries(data.data);
-							 collection.addSeries(fit.data);
+			            	 collection.removeSeries(fit);
+							 collection.removeSeries(data);
+							 data = new DataSeries("data",false,selectedFile.getPath(),L,N);
+							 collection.addSeries(data);
+							 collection.addSeries(fit);
 							 collection.addSeries(min);
 							 collection.addSeries(max);
+							 
+							 chart.setTitle(selectedFile.getName());
 				                
 				                try{
 				                	getContentPane().remove(ttlPanel);
 					                String path =selectedFile.getParent()+"/"+selectedFile.getName().substring(0,8)+" L.CSV";
-				                	ttl = new TTLArray(path);
-				                    ttlPanel = new TTLPanel(ttl);
+				                    ttlPanel = new TTLPanel(path);
 				                    getContentPane().add(ttlPanel, "cell 1 1 1 15,grow");
 									getContentPane().revalidate();
 									getContentPane().repaint();
-									for(TTL item : ttl.data){
-										marker = new ValueMarker(item.start);  // position is the value on the axis
+									for(int ii=0;ii<ttlPanel.getLen();ii++){
+										marker = new ValueMarker(ttlPanel.getStart(ii));  // position is the value on the axis
 										marker.setPaint(Color.green);
 										//marker.
 										XYPlot plot = (XYPlot) chart.getPlot();
@@ -230,16 +244,18 @@ getContentPane().add(lblCord, "cell 0 1,alignx right");
 											
 											@Override
 											public void selectRecord() {
-												//options.spinnerXMIN.setValue(ttlPanel.selected);
-												//options.spinnerXMAX.setValue(ttlPanel.selected+5000.0);
-												chart.getXYPlot().getDomainAxis().setRange(ttlPanel.start,ttlPanel.finish);
+												chart.getXYPlot().getDomainAxis().setRange(ttlPanel.start-10,ttlPanel.finish+10);
+												//options.setT(ttlPanel.start);
+												options.spinnerTmin.setValue(ttlPanel.start);
+												options.spinnerTmax.setValue(ttlPanel.finish);
+												//reDraw();
 											}
 										});
 
 									
 				                }
 									}catch(Exception e2){
-				                	JOptionPane.showMessageDialog(null, "ups",null,JOptionPane.INFORMATION_MESSAGE);
+				                	JOptionPane.showMessageDialog(null, e2.toString(),null,JOptionPane.INFORMATION_MESSAGE);
 				                	
 				                }
 				                askWin.dispose();
@@ -247,43 +263,39 @@ getContentPane().add(lblCord, "cell 0 1,alignx right");
 						}
 					});
 		                
-						 
-		                
-				 
+						
 
 				}
 				
 			}});
 	   
+
+	   
 	   programMenuItem.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				if(chooser.showOpenDialog(null)==JFileChooser.APPROVE_OPTION){
-					//rysowaanie
 					
 					getContentPane().remove(ttlPanel);
 					File selectedFile=chooser.getSelectedFile();
-					ttl = new TTLArray(selectedFile.getPath());
-                    ttlPanel = new TTLPanel(ttl);
+                    ttlPanel = new TTLPanel(selectedFile.getPath());
                     getContentPane().add(ttlPanel, "cell 1 1 1 15,grow");
 					getContentPane().revalidate();
 					getContentPane().repaint();
 					for(TTL item : ttl.data){
-						marker = new ValueMarker(item.start);  // position is the value on the axis
-						marker.setPaint(Color.green);
-						//marker.
+						marker = new ValueMarker(item.start);
 						XYPlot plot = (XYPlot) chart.getPlot();
 						plot.addDomainMarker(marker);
 
 					}
 					
-					//ttlPanel.setSize(900, 300);
 					ttlPanel.addSelectRecordListener(new SelectRecord() {
 						
 						@Override
 						public void selectRecord() {
-							//options.spinnerXMIN.setValue(ttlPanel.selected);
-							//options.spinnerXMAX.setValue(ttlPanel.selected+5000.0);
 							chart.getXYPlot().getDomainAxis().setRange(ttlPanel.finish,ttlPanel.finish);
+							options.spinnerTmin.setValue(ttlPanel.start);
+							options.spinnerTmax.setValue(ttlPanel.finish);
+							options.sliderT.setValue(0);
 						}
 					});
 
@@ -296,7 +308,7 @@ getContentPane().add(lblCord, "cell 0 1,alignx right");
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			// TODO Auto-generated method stub
-			extremaFinderWindow= new ExtremaFinderWindow(data.data);
+			extremaFinderWindow= new ExtremaFinderWindow(data);
 			
 			extremaFinderWindow.btnSaveAs.addActionListener(new ActionListener() {
 				
@@ -312,13 +324,13 @@ extremaFinderWindow.btnGrowthSpeed.addActionListener(new ActionListener() {
 				
 				@Override
 				public void actionPerformed(ActionEvent e) {
-					plotFrame= new PlotFrame(numericalAnalysis.calculateGrowthSpeed(options.parameters[0],
+					plotFrame= new PlotFrame(numericalAnalysis.calculateGrowthSpeed(options.parameters[3],
 							Double.parseDouble(options.spinnerLambda.getValue().toString())));
 					plotFrame.btnSave.addActionListener(new ActionListener() {
 						
 						@Override
 						public void actionPerformed(ActionEvent e) {
-						numericalAnalysis.SaveToFile2(options.parameters[0], 
+						numericalAnalysis.SaveToFile2(options.parameters[3], 
 								Double.parseDouble(options.spinnerLambda.getValue().toString()));	
 						}
 					});
@@ -327,52 +339,20 @@ extremaFinderWindow.btnGrowthSpeed.addActionListener(new ActionListener() {
 			});
 			
 			
-			   
-			
-			
-			
 			 extremaFinderWindow.addExtremaChangeListener(new ExtremaChange() {
 					
 					@Override
 					public void extremaChange() {
-						numericalAnalysis.peakDet(data.data,
+						numericalAnalysis.peakDet(data,
 								extremaFinderWindow.delta,
 								extremaFinderWindow.getFrom(),
 								extremaFinderWindow.getTo()
 								);
 						
-						
-						
-						collection.removeSeries(max);
-						 collection.removeSeries(min);
-						 collection.removeSeries(fit.data);
-						 //collection.addSeries(data.data);
-						 
-							fit = new DataArray(
-									options.parameters[5],//Norma
-									options.parameters[4],//tmin
-									Double.parseDouble(options.spinnerTmax.getValue().toString()),//tmax
-									options.parameters[0],//n
-									options.parameters[1],//k
-									options.parameters[2],//ns
-									options.parameters[3],//ks
-									options.parameters[6],//G
-									Double.parseDouble(options.spinnerLambda.getValue().toString()),//Lam
-									10000);
-							
-							max=numericalAnalysis.getMax();
-							min=numericalAnalysis.getMin();
-							
-							//chart.getXYPlot().getDomainAxis().setRange(Double.parseDouble(options.spinnerXMIN.getValue().toString()),
-							//		Double.parseDouble(options.spinnerXMAX.getValue().toString()));
-							//chart.getXYPlot().getRangeAxis().setRange(data.data.getMinY(),data.data.getMaxY());
-							
-							
-							//collection.addSeries(data.data);
-							collection.addSeries(fit.data);
-							collection.addSeries(min);
-							collection.addSeries(max);
-							numericalAnalysis.mergeArray();
+						max=numericalAnalysis.getMax();
+						min=numericalAnalysis.getMin();
+						reDraw();
+						numericalAnalysis.mergeArray();
 						
 						
 					}
@@ -381,10 +361,20 @@ extremaFinderWindow.btnGrowthSpeed.addActionListener(new ActionListener() {
 		}
 	});
 	   
-	  
-	  
-	   
-	   
+	    
+	}
+	
+	public void reDraw(){
+		//PRERYSOWANIE
+		 collection.removeSeries(max);
+		 collection.removeSeries(min);
+		 collection.removeSeries(fit);		 
+			fit = new DataSeries("fit",false,
+					options.parameters);
+			collection.addSeries(fit);
+			collection.addSeries(min);
+			collection.addSeries(max);
+		   
 	}
 	
 	public static void main(String [] args)

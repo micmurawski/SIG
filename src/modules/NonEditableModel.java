@@ -15,6 +15,11 @@ public class NonEditableModel extends DefaultTableModel {
 
     @Override
     public boolean isCellEditable(int row, int column) {
-        return false;
+    	if(column==3){
+    		return true;
+    	}else{
+    		return false;
+    	}
+        
     }
 }
