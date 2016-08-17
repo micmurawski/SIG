@@ -54,7 +54,7 @@ public class DataSeries extends XYSeries {
 		double k=v[4];
 		double ns=v[5];
 		double ks=v[6];
-		double G=v[7];
+		double G=v[7]/3.6;
 		double lambda=v[8];
 		int N=10000;
 		double a,b,t,fi;
@@ -77,7 +77,7 @@ public class DataSeries extends XYSeries {
 			t=(ii*dt);
 			a = r_inf+2*Math.sqrt(r_inf*r_i)*Math.exp(-gam*t)*Math.cos(delta*t-sig+fi)+r_i*Math.exp(-2*gam*t);
 			b = 1+2*Math.sqrt(r_inf*r_i)*Math.exp(-gam*t)*Math.cos(delta*t-sig-fi)+r_inf*r_i*Math.exp(-2*gam*t);
-			this.add(tmin+t,(100*a/b)+Norm);
+			this.add(tmin+t,(100000*a/b)+Norm);
 			
 		}
 		

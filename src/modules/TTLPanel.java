@@ -5,20 +5,24 @@ import java.awt.Point;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 
 import net.miginfocom.swing.MigLayout;
 import javax.swing.JTable;
+import javax.swing.filechooser.FileFilter;
 
 import org.jfree.data.xy.XYSeries;
 
@@ -34,6 +38,7 @@ public class TTLPanel extends JPanel{
 	public double start,finish;
 	public ArrayList<Object[]> data;
 	private List<SelectRecord> listeners = new LinkedList<>();
+	public XYSeries growthRateHgTe,growthRateCdTe,NsHgTe,NsCdTe,NormHgTe,NormCdTe;
 	
 	public TTLPanel(){
 		super();
@@ -44,6 +49,12 @@ public class TTLPanel extends JPanel{
 	public TTLPanel(String path){
 		super();
 		data = new ArrayList<Object[]>();
+		growthRateHgTe=new XYSeries("HgTe growth rate",false);
+		growthRateCdTe=new XYSeries("CdTe growth rate",false);
+		NsCdTe=new XYSeries("Eff. Ns CdTe",false);
+		NsHgTe=new XYSeries("Eff. Ns HgTe",false);
+		NormCdTe=new XYSeries("Norm CdTe",false);
+		NormHgTe=new XYSeries("Norm HgTe",false);
 		
 		try {
 	        BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(path)));         
@@ -53,21 +64,26 @@ public class TTLPanel extends JPanel{
 	        strLine = br.readLine();
 	        strLine = br.readLine();
 	        strLine = br.readLine();
+	        int i=0;
 			  
 			  while ((strLine = br.readLine()) != null){
+				  
 				  str=strLine.split(",",2);
 				  
 				  if(str[1].equals("0,1,1,1,1,1,1,1,1,1")){
-					  str[1]="CdTe/GaAs";}
+					  str[1]="CdTe/GaAs";
+					}
 		        	else if(str[1].equals("1,1,0,1,1,1,1,1,1,1")){
 		        		str[1]="HgTe/CdTe";
-		        	}
+		        		}
 		        	else if(str[1].equals("1,0,1,1,1,1,1,1,1,1")){
 		        		str[1]="CdTe/HgTe";
-		        	}
+		        		}
 		        	else{}
 				  
-			  data.add(new Object[]{str[1],Double.parseDouble(str[0]),0,0});
+				 data.add(new Object[]{str[1],Double.parseDouble(str[0]),0,0,0,0});
+				  
+			  
 	        }
 			  br.close();
 
@@ -77,7 +93,13 @@ public class TTLPanel extends JPanel{
 		
 		for(int ii=0;ii<data.size()-1;ii++){
 			data.get(ii)[2]=data.get(ii+1)[1];
+			//if(!data.get(ii)[0].equals("CdTe/HgTe") && !data.get(ii)[0].equals("HgTe/CdTe") && !data.get(ii)[0].equals("CdTe/GaAs")) data.remove(ii);
 		}
+		
+		//for(int ii=0;ii<data.size()-1;ii++){
+			//data.get(ii)[2]=data.get(ii+1)[1];
+			//if((!data.get(ii)[0].equals("CdTe/HgTe") && !data.get(ii)[0].equals("HgTe/CdTe")) && !data.get(ii)[0].equals("CdTe/GaAs")) data.remove(ii);
+		//}
 
 		setLayout(new MigLayout("",
 		        "[600:pref, fill, grow][]"));
@@ -85,11 +107,15 @@ public class TTLPanel extends JPanel{
 		
 		matrix = new Object[data.size()][];
 		for (int i = 0; i < data.size(); i++) {
-		    matrix[i] = data.get(i);
+				matrix[i] = data.get(i);
+				//if(matrix[i][2].equals("0")){
+				//	matrix[i][2]=matrix[i][1]*
+				//}
+		    
 		}
 
         
-table=new JTable(new NonEditableModel(matrix, new String[]{"TTL","start","finish","growth rate[um/h]"}));
+table=new JTable(new NonEditableModel(matrix, new String[]{"TTL","start","finish","growth rate[um/h]","Norm","Ns"}));
 table.setPreferredScrollableViewportSize(new Dimension(1200,800));
 
 table.setPreferredScrollableViewportSize(table.getPreferredSize());
@@ -139,6 +165,10 @@ table.addMouseListener(new MouseAdapter() {
 		table.setValueAt(s, i, j);
 	}
 	
+	public Object getValueAt(int i,int j){
+		return table.getValueAt(i, j);
+	}
+	
 	public Object getLabel(int j){
 		return table.getValueAt(j,0);
 	}
@@ -162,6 +192,62 @@ table.addMouseListener(new MouseAdapter() {
 	private void fireOptionChangeEvent(){
 		for(SelectRecord oc: listeners)
 			oc.selectRecord();
+	}
+	
+	public void reset(){
+		for(int ii=0;ii<data.size();ii++){
+			table.setValueAt(0, ii, 3);
+			table.setValueAt(0, ii, 4);
+			table.setValueAt(0, ii, 5);
+		}
+		growthRateHgTe=new XYSeries("HgTe growth rate",false);
+		growthRateCdTe=new XYSeries("CdTe growth rate",false);
+		NsCdTe=new XYSeries("Eff. Ns CdTe",false);
+		NsHgTe=new XYSeries("Eff. Ns HgTe",false);
+		NormCdTe=new XYSeries("Norm CdTe",false);
+		NormHgTe=new XYSeries("Norm HgTe",false);
+		
+	}
+	
+	
+	public void SaveToFile(){
+		JFileChooser fileSaveChooser = new JFileChooser();
+		fileSaveChooser.setDialogTitle("Save File");
+		fileSaveChooser.addChoosableFileFilter(new FileFilter() {
+			
+			public String getDescription() {
+				// TODO Auto-generated method stub
+				return "CSV file";
+			}
+			
+			@Override
+			public boolean accept(File f) {
+				// TODO Auto-generated method stub
+				return f.getName().endsWith(".csv");
+			}
+		});
+		int result = fileSaveChooser.showSaveDialog(null);
+		if(result == JFileChooser.APPROVE_OPTION){
+			File file = fileSaveChooser.getSelectedFile();
+			try{
+				PrintStream fileWriter = new PrintStream(file.getPath());
+				fileWriter.println("Type \t Start[s] \t Finish[s] \t Growth rate[um/h] \t Norm \t Ns");
+				for(int jj=0;jj<data.size();jj++){
+					fileWriter.println(matrix[jj][0]+"\t"+matrix[jj][1]+"\t"+matrix[jj][2]+"\t"+matrix[jj][3]+"\t"+matrix[jj][4]+"\t"+matrix[jj][5]);
+				}
+				
+				fileWriter.flush();
+				fileWriter.close();
+				
+				
+				
+			}catch(Exception e){
+				JOptionPane.showMessageDialog(null, e.getMessage());
+				
+			}
+			
+		}
+		
 	}
 	
 

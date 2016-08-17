@@ -45,6 +45,7 @@ public class MyFuncFitter{
 		
 		MyFunc f = new MyFunc();
 		SimpleCurveFitter fitter=SimpleCurveFitter.create(f, v0);
+		fitter.withMaxIterations(Integer.MAX_VALUE);
 		double [] coeffs =fitter.fit(points);
 		
 		

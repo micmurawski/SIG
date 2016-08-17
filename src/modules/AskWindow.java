@@ -33,7 +33,7 @@ public class AskWindow extends JFrame{
 		lblNewLabel_1 = new JLabel("Norma: ");
 		getContentPane().add(lblNewLabel_1, "cell 0 3,alignx center");
 		
-		spinner_1 = new JSpinner(new SpinnerNumberModel(1000, 1, 1000000, 1));
+		spinner_1 = new JSpinner(new SpinnerNumberModel(1, 1, 1000000, 1));
 		getContentPane().add(spinner_1, "cell 0 4,alignx center");
 		
 		btnOk = new JButton("OK");

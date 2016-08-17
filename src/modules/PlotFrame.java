@@ -1,6 +1,8 @@
 package modules;
 
 import java.awt.Color;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
 import javax.swing.JFrame;
 
@@ -27,7 +29,7 @@ public class PlotFrame extends JFrame{
 	XYSeriesCollection collection;
 	JButton btnSave;
 	
-	public PlotFrame(XYSeries series){
+	public PlotFrame(XYSeries series,String x,String y){
 		
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         this.setSize(500, 500);
@@ -38,7 +40,7 @@ public class PlotFrame extends JFrame{
 		this.getContentPane().setLayout(new MigLayout("", "[500]", "[][][][][][][][]"));
 		collection = new XYSeriesCollection();
 		collection.addSeries(series);
-		chart = ChartFactory.createXYLineChart(" ","Time [s]","Growth Speed [um/h]",
+		chart = ChartFactory.createXYLineChart(" ","x","y",
 				collection,PlotOrientation.VERTICAL,true,true,false);
 		chart.getXYPlot().setBackgroundPaint(Color.WHITE); //kolor obszaru kre�lenia
 		chart.getXYPlot().setRangeGridlinePaint(Color.black); //kolor poziomych linii
@@ -60,7 +62,7 @@ public class PlotFrame extends JFrame{
 		
 	}
 	
-	public PlotFrame(XYSeries series1, XYSeries series2){
+	public PlotFrame(XYSeries series1, XYSeries series2,String x,String y){
 		
 		
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -73,7 +75,7 @@ public class PlotFrame extends JFrame{
 		collection = new XYSeriesCollection();
 		collection.addSeries(series1);
 		collection.addSeries(series2);
-		chart = ChartFactory.createXYLineChart(" ","Time [s]","Growth Speed [um/h]",
+		chart = ChartFactory.createXYLineChart(" ",x,y,
 				collection,PlotOrientation.VERTICAL,true,true,false);
 		chart.getXYPlot().setBackgroundPaint(Color.WHITE); //kolor obszaru kre�lenia
 		chart.getXYPlot().setRangeGridlinePaint(Color.black); //kolor poziomych linii
@@ -92,8 +94,6 @@ public class PlotFrame extends JFrame{
 	    plot.setRenderer(renderer);
 		getContentPane().add(chartContainer, "cell 0 0 1 5,grow");
 		
-		btnSave = new JButton("Save Data");
-		getContentPane().add(btnSave, "cell 0 6,alignx center");
 		
 	}
 

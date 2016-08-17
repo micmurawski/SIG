@@ -246,15 +246,15 @@ public class OptionPanel  extends JPanel{
 		spinnerNormmax.setMinimumSize(new Dimension(60, 10));
 		add(spinnerNormmax, "cell 2 11");
 		
-		lblG = new JLabel("G[nm/s]=1");
+		lblG = new JLabel("G[um/h]=0.5");
 		add(lblG, "cell 1 12,alignx center");
 		
-		spinnerGmin = new JSpinner(new SpinnerNumberModel(0, 0, 5, 0.01));
+		spinnerGmin = new JSpinner(new SpinnerNumberModel(0, 0, 10, 0.01));
 		spinnerGmin.setMinimumSize(new Dimension(60,10));
 		add(spinnerGmin, "flowx,cell 0 13,alignx left");
 		
 		sliderG = new JSlider();
-		sliderG.setValue(0);
+		sliderG.setValue(500);
 		sliderG.setMaximum(1000);
 		sliderG.setMinimum(0);
 		add(sliderG, "cell 1 13");
@@ -265,7 +265,7 @@ public class OptionPanel  extends JPanel{
 				double b = Double.parseDouble(spinnerGmax.getValue().toString());
 				double c = (double)sliderG.getValue();
 				parameters[7]=a+(b-a)*c/1000.0;
-				lblG.setText("G[nm/s]="+formatter.format(parameters[7]));
+				lblG.setText("G[um/h]="+formatter.format(parameters[7]));
 				fireOptionChangeEvent();
 		        //System.out.println(c);
 				
@@ -273,7 +273,7 @@ public class OptionPanel  extends JPanel{
 			}}
 			);
 		
-		spinnerGmax = new JSpinner(new SpinnerNumberModel(1, 0, 5, 0.01));
+		spinnerGmax = new JSpinner(new SpinnerNumberModel(1, 0, 10, 0.01));
 		spinnerGmax.setMinimumSize(new Dimension(60, 10));
 		add(spinnerGmax, "cell 2 13");
 		
@@ -386,9 +386,13 @@ public class OptionPanel  extends JPanel{
 	public void setVariables(double... v){
 		setNorm(v[0]);
 		setG(v[1]);
+		
 		setN(v[2]);
 		setK(v[3]);
-		setKs(v[4]);
+		
+		setNs(v[4]);
+		setKs(v[5]);
+		
 		//setKs()
 		
 		
@@ -430,7 +434,7 @@ public class OptionPanel  extends JPanel{
 	public void setKs(double k){
 		this.spinnerKsmin.setValue(k*0.9);
 		this.spinnerKsmax.setValue(k*1.1);
-		this.sliderK.setValue(500);
+		this.sliderKs.setValue(500);
 		double a = Double.parseDouble(spinnerKsmin.getValue().toString());
 		double b = Double.parseDouble(spinnerKsmax.getValue().toString());
 		double c = (double)sliderKs.getValue();
@@ -446,7 +450,7 @@ public class OptionPanel  extends JPanel{
 		double b = Double.parseDouble(spinnerGmax.getValue().toString());
 		double c = (double)sliderG.getValue();
 		parameters[7]=a+(b-a)*c/1000.0;
-		lblG.setText("G[nm/s]="+formatter.format(parameters[7]));
+		lblG.setText("G[um/h]="+formatter.format(parameters[7]));
 
 	}
 	

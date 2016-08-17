@@ -37,6 +37,7 @@ public class Main extends JFrame{
 
 	public ChartPanel chartContainer;
 	public ExtremaFinderWindow extremaFinderWindow;
+	public ImpAnalyzerFrame impAnalyzerFrame;
 	JFreeChart chart;
 	public DataSeries data;
 
@@ -44,9 +45,9 @@ public class Main extends JFrame{
 	TTLArray ttl;
 	TTLPanel ttlPanel;
 	XYSeriesCollection collection;
-	JMenuItem openMenuItem,programMenuItem,extrema;
+	JMenuItem openMenuItem,programMenuItem,extrema,impAnalyzer,saveTable;
 	JMenuBar menuBar;
-	JMenu fileMenu,analysisMenu;
+	JMenu fileMenu,analysisMenu,saveData;
 	JFileChooser chooser;
 	ValueMarker marker;
 	AskWindow askWin;
@@ -69,16 +70,22 @@ public class Main extends JFrame{
 		menuBar = new JMenuBar();
 		fileMenu = new JMenu("Load File");
 		analysisMenu = new JMenu("Analysis");
+		saveData= new JMenu("Save Data");
+		saveTable= new JMenuItem("Save Table");
 		extrema = new JMenuItem("Extrema Finder");
+		impAnalyzer = new JMenuItem("Imp analyzer");
 		openMenuItem = new JMenuItem("Data File");
 	    openMenuItem.setActionCommand("Data File");
 	    programMenuItem = new JMenuItem("Program File");
 	    programMenuItem.setActionCommand("Program File");
 	    fileMenu.add(openMenuItem);
 	    fileMenu.add(programMenuItem);
+	    saveData.add(saveTable);
 	    menuBar.add(fileMenu);
 	    menuBar.add(analysisMenu);
+	    menuBar.add(saveData);
 	    analysisMenu.add(extrema);
+	    analysisMenu.add(impAnalyzer);
 	    setJMenuBar(menuBar);
 	    fit = new DataSeries("fit",false);
 	    data= new DataSeries("data",false);
@@ -169,7 +176,9 @@ getContentPane().add(lblCord, "cell 0 1,alignx right");
 								options.parameters[1],
 								options.parameters[2],
 								options.getVariables());
+						System.out.println("startowe parametry:  "+Arrays.toString(options.getVariables()));
 						options.setVariables(coeffs);
+						System.out.println(Arrays.toString(coeffs));
 						SwingUtilities.invokeLater(new Runnable() {
 			                public void run() {
 			                    loadingWindow.setVisible(false);
@@ -194,7 +203,14 @@ getContentPane().add(lblCord, "cell 0 1,alignx right");
 		chartContainer.setMaximumDrawWidth(1600);
 		
 		
-		
+		saveTable.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				// TODO Auto-generated method stub
+			ttlPanel.SaveToFile();	
+			}
+		});
 		
 		
 	
@@ -320,12 +336,13 @@ getContentPane().add(lblCord, "cell 0 1,alignx right");
 				}
 			});
 			
-extremaFinderWindow.btnGrowthSpeed.addActionListener(new ActionListener() {
+			
+     extremaFinderWindow.btnGrowthSpeed.addActionListener(new ActionListener() {
 				
 				@Override
 				public void actionPerformed(ActionEvent e) {
 					plotFrame= new PlotFrame(numericalAnalysis.calculateGrowthSpeed(options.parameters[3],
-							Double.parseDouble(options.spinnerLambda.getValue().toString())));
+							Double.parseDouble(options.spinnerLambda.getValue().toString())),"Time [s]","Growth rate [um/h]");
 					plotFrame.btnSave.addActionListener(new ActionListener() {
 						
 						@Override
@@ -349,9 +366,17 @@ extremaFinderWindow.btnGrowthSpeed.addActionListener(new ActionListener() {
 								extremaFinderWindow.getTo()
 								);
 						
-						max=numericalAnalysis.getMax();
-						min=numericalAnalysis.getMin();
-						reDraw();
+						
+						collection.removeSeries(max);
+						 collection.removeSeries(min);
+						 collection.removeSeries(fit);		 
+							fit = new DataSeries("fit",false,
+									options.parameters);
+							max=numericalAnalysis.getMax();
+							min=numericalAnalysis.getMin();
+							collection.addSeries(fit);
+							collection.addSeries(min);
+							collection.addSeries(max);
 						numericalAnalysis.mergeArray();
 						
 						
@@ -360,6 +385,31 @@ extremaFinderWindow.btnGrowthSpeed.addActionListener(new ActionListener() {
 			
 		}
 	});
+	   
+	   
+	   impAnalyzer.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				System.out.println("IMP");
+				impAnalyzerFrame = new ImpAnalyzerFrame(data, ttlPanel);
+				impAnalyzerFrame.btnReset.addActionListener(new ActionListener() {
+					
+					@Override
+					public void actionPerformed(ActionEvent arg0) {
+						System.out.println("TTL reset");
+						ttlPanel.reset();
+						
+					}
+				});
+				
+				
+			}
+		});
+		
+		
+	   
+	   
 	   
 	    
 	}

@@ -196,7 +196,7 @@ public class NumericalAnalysis {
 					dT=Double.parseDouble(merged.getX(jj+1).toString());
 					dT-=Double.parseDouble(merged.getX(jj).toString());
 					T=Double.parseDouble(merged.getX(jj).toString());
-					fileWriter.println(T+dT/2+","+(period/(2*dT)));
+					fileWriter.println(T+","+(period/(2*dT)));
 				}
 				
 				fileWriter.flush();
