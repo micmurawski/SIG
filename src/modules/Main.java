@@ -42,7 +42,6 @@ public class Main extends JFrame{
 	public DataSeries data;
 
 	DataSeries fit;
-	TTLArray ttl;
 	TTLPanel ttlPanel;
 	XYSeriesCollection collection;
 	JMenuItem openMenuItem,programMenuItem,extrema,impAnalyzer,saveTable;
@@ -297,12 +296,28 @@ getContentPane().add(lblCord, "cell 0 1,alignx right");
                     getContentPane().add(ttlPanel, "cell 1 1 1 15,grow");
 					getContentPane().revalidate();
 					getContentPane().repaint();
-					for(TTL item : ttl.data){
-						marker = new ValueMarker(item.start);
+					for(int ii=0;ii<ttlPanel.getLen();ii++){
+						marker = new ValueMarker(ttlPanel.getStart(ii));  // position is the value on the axis
+						marker.setPaint(Color.green);
+						//marker.
 						XYPlot plot = (XYPlot) chart.getPlot();
 						plot.addDomainMarker(marker);
+					
+						ttlPanel.addSelectRecordListener(new SelectRecord() {
+							
+							@Override
+							public void selectRecord() {
+								chart.getXYPlot().getDomainAxis().setRange(ttlPanel.start-10,ttlPanel.finish+10);
+								//options.setT(ttlPanel.start);
+								//options.spinnerTmin.setValue(ttlPanel.start);
+								//options.spinnerTmax.setValue(ttlPanel.finish);
+								options.setT(ttlPanel.start,ttlPanel.finish);
+								//reDraw();
+							}
+						});
 
-					}
+					
+                }
 					
 					ttlPanel.addSelectRecordListener(new SelectRecord() {
 						

@@ -393,7 +393,7 @@ public class OptionPanel  extends JPanel{
 		setNs(v[4]);
 		setKs(v[5]);
 		
-		//setKs()
+		fireOptionChangeEvent();
 		
 		
 	}
@@ -475,6 +475,20 @@ public class OptionPanel  extends JPanel{
 		parameters[1]=a+(b-a)*c/10000.0;
 		parameters[2]=b;
 		lblT.setText("t0="+formatter.format(parameters[1]));
+		
+	}
+	
+	public void setT(double t0,double t1){
+		this.spinnerTmin.setValue(t0);
+		this.spinnerTmax.setValue(t1);
+		this.sliderT.setValue(0);
+		double a = Double.parseDouble(spinnerTmin.getValue().toString());
+		double b = Double.parseDouble(spinnerTmax.getValue().toString());
+		double c = (double)sliderT.getValue();
+		parameters[1]=a+(b-a)*c/10000.0;
+		parameters[2]=b;
+		lblT.setText("t0="+formatter.format(parameters[1]));
+		fireOptionChangeEvent();
 		
 	}
 	

@@ -64,7 +64,6 @@ public class TTLPanel extends JPanel{
 	        strLine = br.readLine();
 	        strLine = br.readLine();
 	        strLine = br.readLine();
-	        int i=0;
 			  
 			  while ((strLine = br.readLine()) != null){
 				  
@@ -200,6 +199,16 @@ table.addMouseListener(new MouseAdapter() {
 			table.setValueAt(0, ii, 4);
 			table.setValueAt(0, ii, 5);
 		}
+		growthRateHgTe=new XYSeries("HgTe growth rate",false);
+		growthRateCdTe=new XYSeries("CdTe growth rate",false);
+		NsCdTe=new XYSeries("Eff. Ns CdTe",false);
+		NsHgTe=new XYSeries("Eff. Ns HgTe",false);
+		NormCdTe=new XYSeries("Norm CdTe",false);
+		NormHgTe=new XYSeries("Norm HgTe",false);
+		
+	}
+	
+	public void resetSeries(){
 		growthRateHgTe=new XYSeries("HgTe growth rate",false);
 		growthRateCdTe=new XYSeries("CdTe growth rate",false);
 		NsCdTe=new XYSeries("Eff. Ns CdTe",false);

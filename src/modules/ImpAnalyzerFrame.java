@@ -10,16 +10,11 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
-import javax.swing.JSlider;
 import javax.swing.JSpinner;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingUtilities;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 
 import net.miginfocom.swing.MigLayout;
-
-import org.jfree.data.xy.XYSeries;
 
 public class ImpAnalyzerFrame extends JFrame{
 	
@@ -29,7 +24,7 @@ public class ImpAnalyzerFrame extends JFrame{
 	double delta=600,lambda=650,CdTe=3.04,HgTe=4.1;
 	private static final long serialVersionUID = 1L;
 	NumericalAnalysis numericalAnalysis;
-	public XYSeries growthRateHgTe,growthRateCdTe,NsHgTe,NsCdTe,NormHgTe,NormCdTe;
+	//public XYSeries growthRateHgTe,growthRateCdTe,NsHgTe,NsCdTe,NormHgTe,NormCdTe;
 	PlotFrame plotFrame;
 	public JButton btnAnalyze;
 	JSpinner spinnerCdTe,spinnerHgTe,spinnerLambda;
@@ -279,6 +274,7 @@ btnGetEffN.addActionListener(new ActionListener() {
 	
 	public void analyze(final DataSeries data,final TTLPanel ttlPanel){
 		
+		ttlPanel.resetSeries();
 		initialCoeffs1[6]=Double.parseDouble(spinnerLambda.getValue().toString());
 		initialCoeffs2[6]=Double.parseDouble(spinnerLambda.getValue().toString());
 		lambda=initialCoeffs1[6]=Double.parseDouble(spinnerLambda.getValue().toString());

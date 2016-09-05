@@ -1,9 +1,8 @@
 package modules;
 
 import java.awt.Color;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 
+import javax.swing.JButton;
 import javax.swing.JFrame;
 
 import net.miginfocom.swing.MigLayout;
@@ -17,7 +16,6 @@ import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
 import org.jfree.util.ShapeUtilities;
-import javax.swing.JButton;
 
 public class PlotFrame extends JFrame{
 	/**
